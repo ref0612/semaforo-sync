@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semáforo Sync</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Semáforo Sync</h1>
+    <div class="button-group">
+      <button id="btn-not-processed">Buscar no procesados</button>
+      <button id="btn-failed">Buscar fallidos</button>
+      <button id="btn-synced">Buscar procesados</button>
+       <button id="btn-resync" style="background:#ff9800; color:#fff;">Resync</button>
+    </div>
+    <div id="record-counter" style="margin: 16px 0; font-weight: bold;"></div>
+    <div id="table-container"></div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

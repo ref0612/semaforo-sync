@@ -1,0 +1,138 @@
+/* Mejoras visuales para tabla de detalle y paginación */
+.detalle-table th {
+  position: sticky;
+  top: 0;
+  background: #2563eb;
+  color: #fff;
+  z-index: 2;
+}
+.btn-detalle.active {
+  background: #1e40af !important;
+  color: #fff !important;
+}
+.btn-page {
+  background: #e0e7ef;
+  border: 1px solid #2563eb;
+  color: #2563eb;
+  border-radius: 4px;
+  padding: 2px 8px;
+  margin: 0 2px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+}
+.btn-page:hover {
+  background: #2563eb;
+  color: #fff;
+}
+.pagination-controls {
+  margin-bottom: 8px;
+}
+body {
+  font-family: 'Roboto', Arial, sans-serif;
+  background: #f6f8fa;
+  margin: 0;
+  padding: 0;
+}
+
+
+.container {
+  width: 95%;
+  max-width: 1200px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 32px 24px 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  text-align: center;
+  color: #2d3748;
+  margin-bottom: 32px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.button-group button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.button-group button:hover {
+  background: #1e40af;
+}
+
+#table-container {
+  margin-top: 24px;
+  width: 100%;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+}
+
+table {
+  min-width: 900px;
+  border-collapse: collapse;
+  margin-top: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+th, td {
+  padding: 12px 10px;
+  text-align: left;
+}
+
+th {
+  background: #2563eb;
+  color: #fff;
+  font-weight: 700;
+}
+
+tr:nth-child(even) {
+  background: #e0e7ef;
+}
+
+tr:hover {
+  background: #c7d2fe;
+}
+
+@media (max-width: 900px) {
+  .container {
+    padding: 12px 2px 24px 2px;
+    max-width: 100vw;
+  }
+  #table-container {
+    padding: 0;
+  }
+  table {
+    min-width: 600px;
+    font-size: 0.95rem;
+  }
+  th, td {
+    padding: 8px 4px;
+    font-size: 0.95rem;
+  }
+  .button-group button {
+    padding: 10px 12px;
+    font-size: 1rem;
+  }
+}
