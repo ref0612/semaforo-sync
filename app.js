@@ -169,21 +169,39 @@ document.addEventListener('click', async function(e) {
         body: JSON.stringify({ id: Number(id) })
       });
       if (res.ok) {
-        btn.textContent = 'OK';
-        btn.style.background = '#22c55e';
+        // Remover la fila del DOM
+        const tr = btn.closest('tr');
+        const tbody = tr.parentElement;
+        tr.remove();
+        // Si no quedan filas en el tbody, ocultar el grupo completo
+        if (tbody.children.length === 0) {
+          // tbody id: tbody-detalle-X
+          const detailId = tbody.id.replace('tbody-', '');
+          // Oculta la fila de detalle
+          const detailRow = document.getElementById(detailId);
+          if (detailRow) detailRow.parentElement.removeChild(detailRow);
+          // Oculta la fila principal del grupo
+          const mainRow = document.querySelector(`button[data-target='${detailId}']`)?.closest('tr');
+          if (mainRow) mainRow.parentElement.removeChild(mainRow);
+        }
       } else {
         btn.textContent = 'Error';
         btn.style.background = '#ef4444';
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.textContent = 'Resync';
+          btn.style.background = '';
+        }, 2000);
       }
     } catch (err) {
       btn.textContent = 'Error';
       btn.style.background = '#ef4444';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = 'Resync';
+        btn.style.background = '';
+      }, 2000);
     }
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.textContent = 'Resync';
-      btn.style.background = '';
-    }, 2000);
   }
 });
 // Buscar y renderizar registros por status
