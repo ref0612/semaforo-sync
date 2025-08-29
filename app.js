@@ -3,10 +3,6 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-not-processed').addEventListener('click', () => fetchAndRender('not_processed'));
   document.getElementById('btn-failed').addEventListener('click', () => fetchAndRender('failed'));
   document.getElementById('btn-synced').addEventListener('click', () => fetchAndRender('synced'));
-  document.getElementById('btn-resync').addEventListener('click', () => {
-    // Aquí puedes agregar la lógica de resync si aplica
-    alert('Funcionalidad de resync aún no implementada');
-  });
   // Carga inicial (opcional: puedes dejar vacío o cargar un estado por defecto)
   // fetchAndRender('not_processed');
 });
@@ -23,6 +19,7 @@ const HEADERS = {
   'sec-ch-ua-mobile': '?0',
   'sec-ch-ua-platform': '"Windows"'
 };
+window.HEADERS = HEADERS;
 let lastAudits = [];
 // Alias para compatibilidad con fetchAndRender
 function renderTable(data) {
@@ -44,8 +41,6 @@ function renderGroupedByTravelName(data) {
   let html = '<table><thead><tr>' +
     '<th>Operador</th>' +
     '<th>Cantidad</th>' +
-    '<th>Primer ID</th>' +
-    '<th>Primer Fecha</th>' +
     '<th>Acciones</th>' +
     '</tr></thead><tbody>';
   Object.keys(groups).forEach((name, idx) => {
@@ -54,14 +49,12 @@ function renderGroupedByTravelName(data) {
     html += `<tr>
       <td>${name}</td>
       <td>${arr.length}</td>
-      <td>${arr[0].id}</td>
-      <td>${arr[0].travel_date || ''}</td>
       <td><button class="btn-detalle" data-target="${detailId}">Ver detalle</button></td>
     </tr>`;
     // Fila de detalle oculta con paginación y tabla de todos los campos
     if (arr.length > 0) {
       const columns = Object.keys(arr[0]);
-      html += `<tr id="${detailId}" style="display:none;background:#f9f9f9;"><td colspan="5">`;
+  html += `<tr id="${detailId}" style="display:none;background:#f9f9f9;"><td colspan="3">`;
       html += `<div style="padding:10px 0;overflow-x:auto; border:1px solid #d1d5db; border-radius:8px; background:#f3f6fa; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
         <b>Detalle de registros agrupados:</b><br>`;
       html += `<table class="detalle-table" style="width:100%;font-size:13px;"><thead><tr>`;
