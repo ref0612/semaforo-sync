@@ -38,13 +38,14 @@ function renderGroupedByTravelName(data) {
     if (!groups[name]) groups[name] = [];
     groups[name].push(item);
   });
+  // Ordenar los grupos de mayor a menor cantidad
+  const sortedGroups = Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
   let html = '<table><thead><tr>' +
     '<th>Operador</th>' +
     '<th>Cantidad</th>' +
     '<th>Acciones</th>' +
     '</tr></thead><tbody>';
-  Object.keys(groups).forEach((name, idx) => {
-    const arr = groups[name];
+  sortedGroups.forEach(([name, arr], idx) => {
     const detailId = `detalle-${idx}`;
     html += `<tr>
       <td>${name}</td>
@@ -54,7 +55,7 @@ function renderGroupedByTravelName(data) {
     // Fila de detalle oculta con paginación y tabla de todos los campos
     if (arr.length > 0) {
       const columns = Object.keys(arr[0]);
-  html += `<tr id="${detailId}" style="display:none;background:#f9f9f9;"><td colspan="3">`;
+      html += `<tr id="${detailId}" style="display:none;background:#f9f9f9;"><td colspan="3">`;
       html += `<div style="padding:10px 0;overflow-x:auto; border:1px solid #d1d5db; border-radius:8px; background:#f3f6fa; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
         <b>Detalle de registros agrupados:</b><br>`;
       html += `<table class="detalle-table" style="width:100%;font-size:13px;"><thead><tr>`;
