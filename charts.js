@@ -5,7 +5,7 @@ if (btnEstadoCola && estadoColaInfo) {
   btnEstadoCola.addEventListener('click', async () => {
     estadoColaInfo.textContent = 'Consultando estado de cola...';
     try {
-      const res = await fetch('http://localhost:3001/api/queue-status');
+  const res = await fetch('https://semaforo-sync.onrender.com/api/queue-status');
       if (!res.ok) throw new Error('Error al consultar la API');
       const data = await res.json();
       if (data && data.data && typeof data.data.total_pending_jobs === 'number') {
@@ -27,7 +27,7 @@ if (btnLimpiarCola && btnEstadoCola && estadoColaInfo) {
     estadoColaInfo.textContent = 'Limpiando cola...';
     try {
       // Primero obtener los IDs pendientes
-      const res = await fetch('http://localhost:3001/api/queue-status');
+  const res = await fetch('https://semaforo-sync.onrender.com/api/queue-status');
       if (!res.ok) throw new Error('Error al consultar la API de estado de cola');
       const data = await res.json();
       const ids = (data && data.data && Array.isArray(data.data.pending_audits)) ? data.data.pending_audits : [];
@@ -37,7 +37,7 @@ if (btnLimpiarCola && btnEstadoCola && estadoColaInfo) {
         return;
       }
       // Llamar al backend para limpiar la cola
-      const res2 = await fetch('http://localhost:3001/api/clear-queue', {
+  const res2 = await fetch('https://semaforo-sync.onrender.com/api/clear-queue', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids })
@@ -262,7 +262,7 @@ tabGraficos.addEventListener('click', () => {
 let charts = {};
 async function renderCharts() {
 
-  const res = await fetch('http://localhost:3001/api/sync-metrics');
+  const res = await fetch('https://semaforo-sync.onrender.com/api/sync-metrics');
   const { all, last, consolidated } = await res.json();
   if (!Array.isArray(all) || all.length === 0) return;
 
