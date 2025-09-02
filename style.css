@@ -1,3 +1,67 @@
+/* Inputs de fecha visualmente integrados */
+.kupos-date-picker {
+  border: 2px solid var(--kupos-coral);
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-size: 1.1rem;
+  font-family: 'Roboto', Arial, sans-serif;
+  background: var(--kupos-bg);
+  color: var(--kupos-text);
+  outline: none;
+  transition: border 0.18s, box-shadow 0.18s;
+  box-shadow: 0 1px 4px rgba(255,101,101,0.08);
+}
+.kupos-date-picker:focus {
+  border: 2.5px solid var(--kupos-orange);
+  box-shadow: 0 2px 8px rgba(253,126,20,0.13);
+}
+.kupos-date-picker[readonly] {
+  cursor: pointer;
+  background: var(--kupos-bg-light);
+}
+.kupos-calendar_common_kupos_calendar__0k1pS {
+  background: var(--kupos-bg);
+  border: 2px solid var(--kupos-coral);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(255,101,101,0.13);
+  padding: 18px 14px 14px 14px;
+  min-width: 260px;
+  font-family: 'Roboto', Arial, sans-serif;
+  z-index: 1000;
+  color: var(--kupos-text);
+}
+.kupos-calendar_common_kupos_calendar__0k1pS button {
+  color: var(--kupos-coral);
+  font-weight: bold;
+  border-radius: 6px;
+  padding: 2px 8px;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  transition: background 0.15s, color 0.15s;
+}
+.kupos-calendar_common_kupos_calendar__0k1pS button:hover {
+  background: var(--kupos-orange);
+  color: #fff;
+}
+.kupos-calendar_common_kupos_calendar__0k1pS span {
+  color: var(--kupos-text);
+}
+.kupos-calendar_common_kupos_calendar__0k1pS div {
+  font-size: 1rem;
+}
+.kupos-calendar_common_kupos_calendar__0k1pS .selected {
+  background: var(--kupos-coral) !important;
+  color: #fff !important;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(255,101,101,0.13);
+  border: 2px solid var(--kupos-coral);
+}
+.kupos-calendar_common_kupos_calendar__0k1pS .calendar-day-cell:hover {
+  background: var(--kupos-orange) !important;
+  color: #fff !important;
+  border: 2px solid var(--kupos-orange);
+}
 /* Variables CSS globales */
 :root {
   --kupos-bg: #fff;
