@@ -1,13 +1,15 @@
-
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
 import cron from 'node-cron';
 import cors from 'cors';
-
+import { fileURLToPath } from 'url';
 
 const app = express();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const FRONTEND_PATH = path.resolve(__dirname, '../');
+app.use(express.static(FRONTEND_PATH));
 app.use(cors());
 const PORT = process.env.PORT || 3001;
 const DATA_FILE = path.resolve('./sync-metrics.json');
@@ -32,18 +34,26 @@ async function fetchAndStoreStatus(status) {
     if (!res.ok) throw new Error('API error');
     const data = await res.json();
     const audits = (data && data.data && Array.isArray(data.data.audits)) ? data.data.audits : [];
-    // Guardar toda la info relevante de cada registro
+    // IDs únicos
+    const uniqueIds = new Set();
+    const uniqueAudits = [];
+    audits.forEach(item => {
+      if (!uniqueIds.has(item.id)) {
+        uniqueIds.add(item.id);
+        uniqueAudits.push(item);
+      }
+    });
     const entry = {
       status,
-      count: audits.length,
-      operatorCounts: countByOperator(audits),
+      count: uniqueAudits.length,
+      operatorCounts: countByOperator(uniqueAudits),
       timestamp: new Date().toISOString(),
-      registros: audits.map(item => ({
+      registros: uniqueAudits.map(item => ({
         id: item.id,
         operador: item.travel_name || 'Sin operador',
         accion: item.action || '',
         sistema: item.system || '',
-        ...item // Guarda todo el objeto por si se requiere más info
+        ...item
       }))
     };
     let fileData = [];
@@ -54,7 +64,7 @@ async function fetchAndStoreStatus(status) {
     }
     fileData.push(entry);
     fs.writeFileSync(DATA_FILE, JSON.stringify(fileData, null, 2));
-    console.log(`[${entry.timestamp}] Guardado status '${status}' (${audits.length} registros)`);
+    console.log(`[${entry.timestamp}] Guardado status '${status}' (${uniqueAudits.length} ids únicos)`);
   } catch (err) {
     console.error(`Error consultando status '${status}':`, err.message);
   }
@@ -62,9 +72,13 @@ async function fetchAndStoreStatus(status) {
 
 function countByOperator(audits) {
   const counts = {};
+  const seen = new Set();
   audits.forEach(item => {
-    const name = item.travel_name || 'Sin operador';
-    counts[name] = (counts[name] || 0) + 1;
+    if (!seen.has(item.id)) {
+      seen.add(item.id);
+      const name = item.travel_name || 'Sin operador';
+      counts[name] = (counts[name] || 0) + 1;
+    }
   });
   return counts;
 }
@@ -191,4 +205,50 @@ app.post('/api/clear-queue', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
+});
+// Endpoint seguro para obtener audits filtrados por status
+app.get('/api/audits', async (req, res) => {
+  const status = req.query.status;
+  if (!status) return res.status(400).json({ error: 'Falta parámetro status' });
+  try {
+    const url = `${API_BASE}status=${status}`;
+    const response = await fetch(url, { headers: HEADERS });
+    if (!response.ok) throw new Error('Error consultando audits');
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Error consultando audits', details: err.message });
+  }
+});
+
+// Endpoint seguro para resync de un audit
+app.post('/api/resync', async (req, res) => {
+  const { id } = req.body;
+  if (!id) return res.status(400).json({ error: 'Falta id' });
+  try {
+    const response = await fetch('https://gds.kupos.com/api/v2/konnect_gds_sync/retrigger_sync', {
+      method: 'POST',
+      headers: {
+        ...HEADERS,
+        'content-type': 'application/json',
+        'accept': 'application/json, text/plain, */*',
+        'accept-language': 'es-ES,es;q=0.9,en;q=0.8,gl;q=0.7',
+        'origin': 'https://gdsdashboard.kupos.com',
+        'priority': 'u=1, i',
+        'referer': 'https://gdsdashboard.kupos.com/',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-site'
+      },
+      body: JSON.stringify({ id })
+    });
+    const result = await response.json();
+    if (response.ok) {
+      res.json({ success: true, result });
+    } else {
+      res.status(500).json({ success: false, message: 'Error al hacer resync', details: result });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Error al hacer resync', details: err.message });
+  }
 });

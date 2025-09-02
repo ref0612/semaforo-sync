@@ -1,11 +1,45 @@
-// --- Estado de cola: botón y lógica ---
+// --- Toggle tablas debajo del gráfico de flujo ---
+const btnSwitchOperador = document.getElementById('btn-switch-operador');
+const btnSwitchAccion = document.getElementById('btn-switch-accion');
+const switchTablasWrapper = document.getElementById('switch-tablas-wrapper');
+function showTablasSwitch() {
+  if (switchTablasWrapper && btnSwitchOperador && btnSwitchAccion) {
+    switchTablasWrapper.style.display = 'flex';
+    // Por defecto: operador activo
+    const tablaOps = document.getElementById('tabla-operadores-wrapper');
+    const tablaAccion = document.getElementById('tabla-actions-wrapper');
+    if (tablaOps) tablaOps.style.display = '';
+    if (tablaAccion) tablaAccion.style.display = 'none';
+    btnSwitchOperador.classList.add('active');
+    btnSwitchAccion.classList.remove('active');
+  }
+}
+if (btnSwitchOperador && btnSwitchAccion) {
+  btnSwitchOperador.addEventListener('click', () => {
+    const tablaOps = document.getElementById('tabla-operadores-wrapper');
+    const tablaAccion = document.getElementById('tabla-actions-wrapper');
+    if (tablaOps) tablaOps.style.display = '';
+    if (tablaAccion) tablaAccion.style.display = 'none';
+    btnSwitchOperador.classList.add('active');
+    btnSwitchAccion.classList.remove('active');
+  });
+  btnSwitchAccion.addEventListener('click', () => {
+    const tablaOps = document.getElementById('tabla-operadores-wrapper');
+    const tablaAccion = document.getElementById('tabla-actions-wrapper');
+    if (tablaOps) tablaOps.style.display = 'none';
+    if (tablaAccion) tablaAccion.style.display = '';
+    btnSwitchOperador.classList.remove('active');
+    btnSwitchAccion.classList.add('active');
+  });
+}
+// --- Estado/Limpiar cola: botón único ---
 const btnEstadoCola = document.getElementById('btn-estado-cola');
 const estadoColaInfo = document.getElementById('estado-cola-info');
 if (btnEstadoCola && estadoColaInfo) {
   btnEstadoCola.addEventListener('click', async () => {
     estadoColaInfo.textContent = 'Consultando estado de cola...';
     try {
-  const res = await fetch('https://semaforo-sync.onrender.com/api/queue-status');
+      const res = await fetch('https://semaforo-sync.onrender.com/api/queue-status');
       if (!res.ok) throw new Error('Error al consultar la API');
       const data = await res.json();
       if (data && data.data && typeof data.data.total_pending_jobs === 'number') {
@@ -13,45 +47,27 @@ if (btnEstadoCola && estadoColaInfo) {
       } else {
         estadoColaInfo.textContent = 'No se pudo obtener el estado de la cola.';
       }
-    } catch (e) {
-      estadoColaInfo.textContent = 'Error al consultar el estado de la cola.';
-    }
-  });
-}
-
-// --- Limpiar cola: botón y lógica ---
-const btnLimpiarCola = document.getElementById('btn-limpiar-cola');
-if (btnLimpiarCola && btnEstadoCola && estadoColaInfo) {
-  btnLimpiarCola.addEventListener('click', async () => {
-    btnLimpiarCola.disabled = true;
-    estadoColaInfo.textContent = 'Limpiando cola...';
-    try {
-      // Primero obtener los IDs pendientes
-  const res = await fetch('https://semaforo-sync.onrender.com/api/queue-status');
-      if (!res.ok) throw new Error('Error al consultar la API de estado de cola');
-      const data = await res.json();
+      // Si hay IDs pendientes, preguntar si limpiar
       const ids = (data && data.data && Array.isArray(data.data.pending_audits)) ? data.data.pending_audits : [];
-      if (!ids.length) {
-        estadoColaInfo.textContent = 'No hay IDs pendientes para limpiar.';
-        btnLimpiarCola.disabled = false;
-        return;
-      }
-      // Llamar al backend para limpiar la cola
-  const res2 = await fetch('https://semaforo-sync.onrender.com/api/clear-queue', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids })
-      });
-      const result = await res2.json();
-      if (res2.ok && result.success) {
-        estadoColaInfo.textContent = 'Cola limpiada correctamente.';
-      } else {
-        estadoColaInfo.textContent = 'No se pudo limpiar la cola.';
+      if (ids.length > 0) {
+        if (confirm(`¿Limpiar la cola? Se eliminarán ${ids.length} pendientes.`)) {
+          estadoColaInfo.textContent = 'Limpiando cola...';
+          const res2 = await fetch('https://semaforo-sync.onrender.com/api/clear-queue', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids })
+          });
+          const result = await res2.json();
+          if (res2.ok && result.success) {
+            estadoColaInfo.textContent = 'Cola limpiada correctamente.';
+          } else {
+            estadoColaInfo.textContent = 'No se pudo limpiar la cola.';
+          }
+        }
       }
     } catch (e) {
-      estadoColaInfo.textContent = 'Error al limpiar la cola.';
+      estadoColaInfo.textContent = 'Error al consultar/limpiar la cola.';
     }
-    btnLimpiarCola.disabled = false;
   });
 }
 // Lógica de pestañas
@@ -304,7 +320,7 @@ async function renderCharts() {
     infoPromedio.style = 'margin-bottom:12px;font-weight:bold;font-size:1.1rem;color:#2563eb;text-align:center;';
     document.getElementById('charts-container').parentElement.insertBefore(infoPromedio, document.getElementById('charts-container'));
   }
-  infoPromedio.textContent = `⏱️ Promedio de tiempo de procesamiento por ID: ${promedioSeg} segundos`;
+  infoPromedio.textContent = `⏱️ Average Processing Time: ${promedioSeg} seconds`;
 
   // --- Gráfico 1: Flujo de registros (agrupado en intervalos de 5 minutos) ---
   // Agrupar por intervalos de 5 minutos
@@ -336,8 +352,8 @@ async function renderCharts() {
       data: {
         labels: flujoLabels,
         datasets: [
-          { label: 'No procesados', data: flujoNotProcessed, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, borderWidth: 3, pointRadius: 4 },
-          { label: 'Fallidos', data: flujoFailed, borderColor: '#ff6565', backgroundColor: 'rgba(255,101,101,0.1)', fill: true, borderWidth: 3, pointRadius: 4 }
+          { label: 'Not Processed', data: flujoNotProcessed, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, borderWidth: 3, pointRadius: 4 },
+          { label: 'Failed', data: flujoFailed, borderColor: '#ff6565', backgroundColor: 'rgba(255,101,101,0.1)', fill: true, borderWidth: 3, pointRadius: 4 }
         ]
       },
       options: {
@@ -346,8 +362,8 @@ async function renderCharts() {
           legend: { position: 'top', labels: { font: { size: 18, weight: 'bold' } } }
         },
         scales: {
-          x: { title: { display: true, text: 'Hora (intervalos de 5 min)', font: { size: 18, weight: 'bold' } }, ticks: { font: { size: 14 } } },
-          y: { title: { display: true, text: 'Cantidad', font: { size: 18, weight: 'bold' } }, ticks: { font: { size: 14 } } }
+          x: { title: { display: true, text: 'Time', font: { size: 18, weight: 'bold' } }, ticks: { font: { size: 14 } } },
+          y: { title: { display: true, text: 'Quantity', font: { size: 18, weight: 'bold' } }, ticks: { font: { size: 14 } } }
         }
       }
     });
@@ -356,6 +372,7 @@ async function renderCharts() {
   // --- Gráfico 2: Operador con más registros (solo consolidado) ---
   // Consolidado global - TABLA DE OPERADORES
   if (consolidated && consolidated.not_processed) {
+    showTablasSwitch();
     // Tomar no procesados y fallidos por operador
     const notProcessed = consolidated.not_processed.operatorCounts || {};
     const failed = (consolidated.failed && consolidated.failed.operatorCounts) ? consolidated.failed.operatorCounts : {};
@@ -388,7 +405,7 @@ async function renderCharts() {
     tablaOps.innerHTML = '';
     // Header
     const thead = document.createElement('thead');
-    thead.innerHTML = `<tr style=\"background:#fd7e14;color:#fff;\"><th style=\"padding:8px 16px;text-align:center;\">Operador</th><th style=\"padding:8px 16px;text-align:center;\">No procesados</th><th style=\"padding:8px 16px;text-align:center;\">Fallidos</th><th style=\"padding:8px 16px;text-align:center;\">Total</th></tr>`;
+    thead.innerHTML = `<tr style=\"background:#fd7e14;color:#fff;\"><th style=\"padding:8px 16px;text-align:center;\">Operador</th><th style=\"padding:8px 16px;text-align:center;\">No Processed</th><th style=\"padding:8px 16px;text-align:center;\">Failed</th><th style=\"padding:8px 16px;text-align:center;\">Total</th></tr>`;
     tablaOps.appendChild(thead);
     // Body
     const tbody = document.createElement('tbody');
@@ -417,7 +434,8 @@ async function renderCharts() {
   });
   // Ordenar por total de ocurrencias (más consultados arriba)
   const sortedActions = Object.entries(actionCounts).sort((a, b) => (b[1].processed + b[1].failed + b[1].not_processed) - (a[1].processed + a[1].failed + a[1].not_processed));
-    let tabla = document.getElementById('tabla-actions');
+  showTablasSwitch();
+  let tabla = document.getElementById('tabla-actions');
     if (!tabla) {
       tabla = document.createElement('table');
       tabla.id = 'tabla-actions';
@@ -436,7 +454,7 @@ async function renderCharts() {
     tabla.innerHTML = '';
     // Header
     const thead = document.createElement('thead');
-    thead.innerHTML = `<tr style="background:#ff6565;color:#fff;"><th style="padding:8px 16px;text-align:center;">Acción</th><th style="padding:8px 16px;text-align:center;">No procesados</th><th style="padding:8px 16px;text-align:center;">Fallidos</th><th style="padding:8px 16px;text-align:center;">Total</th></tr>`;
+    thead.innerHTML = `<tr style="background:#ff6565;color:#fff;"><th style="padding:8px 16px;text-align:center;">Action</th><th style="padding:8px 16px;text-align:center;">Not Processed</th><th style="padding:8px 16px;text-align:center;">Failed</th><th style="padding:8px 16px;text-align:center;">Total</th></tr>`;
     tabla.appendChild(thead);
     // Body
     const tbody = document.createElement('tbody');
